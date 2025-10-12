@@ -75,9 +75,13 @@ int main() {
 	float time = glfwGetTime();
 	
 	glm::mat4 model(1.0f);
+	diffuseShader.Activate();
+	diffuseShader.Setvec3("ambience", ambience);
+	Model test_scene("Assets/scene.obj");
 
 	while (glfwWindowShouldClose(window) == false) {
 		float currentTime = glfwGetTime();
+		float dtime = currentTime - time;
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) { break; }   //setting up the close window button
 
 		glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
@@ -90,18 +94,19 @@ int main() {
 		diffuseShader.Activate();
 		diffuseShader.Setmat4("cameraMatrix", scenecam.GetTransformMatrix());
 		diffuseShader.Setvec3("cameraPos", scenecam.Position);
-		diffuseShader.Setvec3("ambience", ambience);
 		diffuseShader.Setmat4("model",model);
-
+		diffuseShader.Set1f("tmaterial.shine", 64.0f);
 		PassPointsToShader(diffuseShader, scene -> points);
 		PassSunsToShader(diffuseShader,scene -> suns);
 		PassConesToShader(diffuseShader, scene -> cones);
+		//ApplySunToShader(diffuseShader, &sun, 0);
 
+		test_scene.Draw(diffuseShader);
 		//sun.Direction = glm::vec3(0.0f, sin(currentTime), 1.0f);
-		float dtime = currentTime - time;
+		
 
-		scenecam.GetKeyInputs(window, 0.01f, true, dtime); //Camera movement
 		scene->render(diffuseShader, emissiveShader);
+		scenecam.GetKeyInputs(window, 0.01f, true, dtime); //Camera movement
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
