@@ -48,9 +48,7 @@ public:
 
     // Render the scene
     void render(Shader objectShader, Shader lightShader) {
-        PassPointsToShader(objectShader, points);
-        PassSunsToShader(objectShader, suns);
-        PassConesToShader(objectShader, cones);
+
         for (GameObject* object : gameObjects) {
             // Apply transform and render the game object
             object->draw(objectShader);

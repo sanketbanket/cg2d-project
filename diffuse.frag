@@ -47,7 +47,7 @@ float shine;  //should be a power of two : higher the value more "shinier" the m
 struct tMaterial {
 sampler2D diffuse1;
 sampler2D specular1;
-sampler2D normal1;
+
 float shine;
 };
 
