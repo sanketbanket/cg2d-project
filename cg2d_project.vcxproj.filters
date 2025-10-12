@@ -98,4 +98,9 @@
       <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Object Include="Assets\spode-christmas-mug\source\mug.obj">
+      <Filter>Assets</Filter>
+    </Object>
+  </ItemGroup>
 </Project>

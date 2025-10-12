@@ -12,7 +12,7 @@ out vec3 normal;
 out vec3 FragPos;
 out vec2 texCoords;
 
-uniform float scale;
+uniform float scale; // not used
 uniform mat4 model;
 uniform mat4 cameraMatrix;
 

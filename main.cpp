@@ -40,11 +40,19 @@ int main() {
 	Shader diffuseShader("lighting.vert", "diffuse.frag"); // create shaders
 	Shader emissiveShader("emissive.vert", "emissive.frag");
 	Camera scenecam(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), 45.0f, (float)(width) / height, 0.1f, 100.0f);  //creating the camera
+	
+
 
 	while (glfwWindowShouldClose(window) == false) {
 		glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		Model mug();
+
+		diffuseShader.Setmat4("cameraMatrix", scenecam.GetTransformMatrix());
+		diffuseShader.Setvec3("camPos", scenecam.Position);
+		diffuseShader.Setvec3("ambience", ambience);
+
+
+		Model mug("F:/Computer Graphics/cg2d-project/cg2d_project/Assets/spode-christmas-mug/source/mug.obj");
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

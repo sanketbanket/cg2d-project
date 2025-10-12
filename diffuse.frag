@@ -103,8 +103,8 @@ vec3 reflected = reflect(light_direction, norm);
 float spec = pow(max(0.0, dot(halfway, norm)), tmaterial.shine);
 vec3 specular = 0.01f * light.specular * (spec * specular_color.xyz);
 //finishing up;
-vec3 ambient =  ambience * diffuse_color.xyz;
-return ambient + diffuse + specular;
+//vec3 ambient =  ambience * diffuse_color.xyz;
+return diffuse + specular;
 };
 
 vec3 calculate_cone(tMaterial tmaterial, coneLight light){

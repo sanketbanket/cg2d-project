@@ -2,7 +2,7 @@
 #define LIGHT_CLASS_H
 
 #include <glm/vec3.hpp>
-#include "shaderClass.h"
+#include "Shader.h"
 #include <string>
 #include <vector>
 #include "Model.h"
