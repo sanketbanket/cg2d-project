@@ -40,24 +40,32 @@ int main() {
 	Shader diffuseShader("lighting.vert", "diffuse.frag"); // create shaders
 	Shader emissiveShader("emissive.vert", "emissive.frag");
 	Camera scenecam(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), 45.0f, (float)(width) / height, 0.1f, 100.0f);  //creating the camera
-	
-	Model mug("Assets/spode-christmas-mug/source/mug.obj");
 
+	Model thing("Assets/spode-christmas-mug/source/mug.obj");
+
+	float time = glfwGetTime();
+	
+	glm::mat4 model(1.0f);
 
 	while (glfwWindowShouldClose(window) == false) {
+		float currentTime = glfwGetTime();
 		glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+		diffuseShader.Activate();
 		diffuseShader.Setmat4("cameraMatrix", scenecam.GetTransformMatrix());
 		diffuseShader.Setvec3("camPos", scenecam.Position);
 		diffuseShader.Setvec3("ambience", ambience);
+		diffuseShader.Setmat4("model",model);
+		thing.Draw(diffuseShader);
 
-		mug.Draw(diffuseShader);
 
+		float dtime = currentTime - time;
+
+		scenecam.GetKeyInputs(window, 0.05f, true, dtime); //Camera movement
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 	glfwTerminate();
 	return 0;
-	
+
 }

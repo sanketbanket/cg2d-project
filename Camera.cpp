@@ -91,7 +91,7 @@ void Camera::ghetto_Mouse_Callback(GLFWwindow* window) { // ghetto cuz using rig
 bool first = true;
 
 
-void Camera::GetKeyInputs(GLFWwindow* window, float velocity, bool focus) {     //all the transformations will move the world itself inverse to the camera; 
+void Camera::GetKeyInputs(GLFWwindow* window, float velocity, bool focus, float dtime = 1.0f) {     //all the transformations will move the world itself inverse to the camera; 
 	using namespace glm;
 	vec3 front(0.0f, 0.0f, -1.0f);
 
@@ -105,27 +105,27 @@ void Camera::GetKeyInputs(GLFWwindow* window, float velocity, bool focus) {     
 		ghetto_Mouse_Callback(window);
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
 			view = translate(mat4(1.0f), -fake_up * velocity) * view;
-			Position += velocity * vec3(0.0f, 1.0f, 0.0f);
+			Position += velocity * vec3(0.0f, 1.0f, 0.0f) * dtime;
 		}
 		if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
 			view = translate(mat4(1.0f), fake_up * velocity) * view;
-			Position += velocity * vec3(0.0f, -1.0f, 0.0f);
+			Position += velocity * vec3(0.0f, -1.0f, 0.0f) * dtime;
 		}
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
 			view = translate(mat4(1.0f), -fake_right * velocity) * view;
-			Position += -velocity * local_right;
+			Position += -velocity * local_right * dtime;
 		}
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
 			view = translate(mat4(1.0f), fake_right * velocity) * view;
-			Position += velocity * local_right;
+			Position += velocity * local_right * dtime;
 		}
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 			view = translate(mat4(1.0f), -front * velocity) * view;
-			Position += velocity * normalize(Orientation);
+			Position += velocity * normalize(Orientation) * dtime;
 		}
 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
 			view = translate(mat4(1.0f), front * velocity) * view;
-			Position += -velocity * normalize(Orientation);
+			Position += -velocity * normalize(Orientation) * dtime;
 		}
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS) {
 			std::cout << "CAMERA POSITION : " << Position.x << '\\' << Position.y << '\\' << Position.z << std::endl;

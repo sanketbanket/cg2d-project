@@ -23,7 +23,7 @@ public:
 
 	Camera(glm::vec3 position, glm::vec3 target, float fov, float aRatio, float nearest, float furthest);
 	glm::mat4 GetTransformMatrix();
-	void GetKeyInputs(GLFWwindow* window, float velocity, bool debug);
+	void GetKeyInputs(GLFWwindow* window, float velocity, bool debug, float dtime);
 	void ghetto_Mouse_Callback(GLFWwindow* window);
 
 

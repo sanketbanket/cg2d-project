@@ -47,6 +47,7 @@ float shine;  //should be a power of two : higher the value more "shinier" the m
 struct tMaterial {
 sampler2D diffuse1;
 sampler2D specular1;
+sampler2D normal1;
 float shine;
 };
 
@@ -178,7 +179,7 @@ cone.specular = vec3(0.0f, 0.0f,3.0f);
 cone.cutoff_angle = 45.0f;
 
 
-vec3 output_color = ambience * texture(tmaterial.diffuse1, texCoords).xyz;
+vec3 output_color = ambience * texture(tmaterial.diffuse1, texCoords).xyz; //apply ambient color first.
 
 for(int i = 0; i < pointCount ; i++){
 output_color += calculate_point(tmaterial, Points[i]);
