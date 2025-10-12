@@ -104,27 +104,27 @@ void Camera::GetKeyInputs(GLFWwindow* window, float velocity, bool focus, float 
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		ghetto_Mouse_Callback(window);
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-			view = translate(mat4(1.0f), -fake_up * velocity) * view;
+			view = translate(mat4(1.0f), -fake_up * velocity * dtime) * view;
 			Position += velocity * vec3(0.0f, 1.0f, 0.0f) * dtime;
 		}
 		if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
-			view = translate(mat4(1.0f), fake_up * velocity) * view;
+			view = translate(mat4(1.0f), fake_up * velocity * dtime) * view;
 			Position += velocity * vec3(0.0f, -1.0f, 0.0f) * dtime;
 		}
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-			view = translate(mat4(1.0f), -fake_right * velocity) * view;
+			view = translate(mat4(1.0f), -fake_right * velocity * dtime) * view;
 			Position += -velocity * local_right * dtime;
 		}
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-			view = translate(mat4(1.0f), fake_right * velocity) * view;
+			view = translate(mat4(1.0f), fake_right * velocity * dtime) * view;
 			Position += velocity * local_right * dtime;
 		}
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-			view = translate(mat4(1.0f), -front * velocity) * view;
+			view = translate(mat4(1.0f), -front * velocity *dtime) * view;
 			Position += velocity * normalize(Orientation) * dtime;
 		}
 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-			view = translate(mat4(1.0f), front * velocity) * view;
+			view = translate(mat4(1.0f), front * velocity *dtime) * view;
 			Position += -velocity * normalize(Orientation) * dtime;
 		}
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS) {

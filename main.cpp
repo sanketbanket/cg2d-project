@@ -93,10 +93,14 @@ int main() {
 		diffuseShader.Setvec3("ambience", ambience);
 		diffuseShader.Setmat4("model",model);
 
+		PassPointsToShader(diffuseShader, scene -> points);
+		PassSunsToShader(diffuseShader,scene -> suns);
+		PassConesToShader(diffuseShader, scene -> cones);
+
 		//sun.Direction = glm::vec3(0.0f, sin(currentTime), 1.0f);
 		float dtime = currentTime - time;
 
-		scenecam.GetKeyInputs(window, 0.05f, true, dtime); //Camera movement
+		scenecam.GetKeyInputs(window, 0.01f, true, dtime); //Camera movement
 		scene->render(diffuseShader, emissiveShader);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
