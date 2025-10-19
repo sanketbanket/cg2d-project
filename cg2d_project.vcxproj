@@ -115,7 +115,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)assimp_test\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)assimp_test\include;$(ProjectDir)libraries\include\imgui\backends;$(ProjectDir)libraries\include\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -144,6 +144,16 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="EBO.cpp" />
     <ClCompile Include="glad.c" />
+    <ClCompile Include="GUI.cpp" />
+    <ClCompile Include="Libraries\include\imgui\backends\imgui_impl_glfw.cpp" />
+    <ClCompile Include="Libraries\include\imgui\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="Libraries\include\imgui\imgui.cpp" />
+    <ClCompile Include="Libraries\include\imgui\imgui_demo.cpp" />
+    <ClCompile Include="Libraries\include\imgui\imgui_draw.cpp" />
+    <ClCompile Include="Libraries\include\imgui\imgui_tables.cpp" />
+    <ClCompile Include="Libraries\include\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="Libraries\include\imgui\misc\cpp\imgui_stdlib.cpp" />
+    <ClCompile Include="light_objects.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="stb.cpp" />
@@ -155,6 +165,17 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="EBO.h" />
     <ClInclude Include="GameObj.h" />
+    <ClInclude Include="GUI.h" />
+    <ClInclude Include="Libraries\include\imgui\backends\imgui_impl_glfw.h" />
+    <ClInclude Include="Libraries\include\imgui\backends\imgui_impl_opengl3.h" />
+    <ClInclude Include="Libraries\include\imgui\backends\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="Libraries\include\imgui\imconfig.h" />
+    <ClInclude Include="Libraries\include\imgui\imgui.h" />
+    <ClInclude Include="Libraries\include\imgui\imgui_internal.h" />
+    <ClInclude Include="Libraries\include\imgui\imstb_rectpack.h" />
+    <ClInclude Include="Libraries\include\imgui\imstb_textedit.h" />
+    <ClInclude Include="Libraries\include\imgui\imstb_truetype.h" />
+    <ClInclude Include="Libraries\include\imgui\misc\cpp\imgui_stdlib.h" />
     <ClInclude Include="light_objects.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />

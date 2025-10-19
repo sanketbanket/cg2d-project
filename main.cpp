@@ -1,3 +1,4 @@
+#define _HAS_STD_BYTE 0
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -7,13 +8,47 @@
 #include "GameObj.h"
 #include "Scene.h"
 #include "light_objects.h"
+#include "GUI.h"
+
 
 using std::cout, std::endl;
 
+char keyOnce[GLFW_KEY_LAST + 1];
+#define glfwGetKeyOnce(WINDOW, KEY)				\
+	(glfwGetKey(WINDOW, KEY) ?				\
+	 (keyOnce[KEY] ? false : (keyOnce[KEY] = true)) :	\
+	 (keyOnce[KEY] = false))
+
+int selectedGameObj = -1;
+
+
+void setFocus(GLFWwindow* window, Camera scenecam, bool& focus)
+{
+	if (glfwGetKeyOnce(window, GLFW_KEY_G) == GLFW_PRESS) {
+		focus = !focus;
+		if (focus==true)
+		{
+			cout << "focus on"<<endl;
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			glfwSetCursorPos(window, scenecam.xposMouse, scenecam.yposMouse);
+		}
+		else {
+			cout << "focus off"<<endl;
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			int width, height;
+			glfwGetWindowSize(window,&width, &height);
+			glfwSetCursorPos(window, width/2, height/2);
+			//glfwSetCursorPos(window, 1920 / 2, 1080 / 2);
+		}
+		cout << focus;
+		//return focus;
+	}
+}
+
 int main() {
 
-	int height = 800;
-	int width = 800;
+	int height = 1080;
+	int width = 1920;
 
 	// Basic GLFW window creation
 	glfwInit();
@@ -21,7 +56,7 @@ int main() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(height, width, "Renderer", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(width, height, "Renderer", NULL, NULL);
 
 	if (window == NULL) {
 		cout << "Failed to create GLFW window" << endl;
@@ -30,7 +65,7 @@ int main() {
 	}
 	glfwMakeContextCurrent(window);
 	gladLoadGL();
-	glViewport(0, 0, height, width);
+	glViewport(0, 0, width, height);
 	glEnable(GL_DEPTH_TEST);
 
 	glfwWindowHint(GLFW_SAMPLES, 4); // Anti-aliasing
@@ -48,7 +83,7 @@ int main() {
 	Scene* scene = new Scene;
 
 	GameObject* bag = new GameObject("Models/bag_model/backpack.obj", true, "bag");
-	GameObject* rock = new GameObject("Models/basecharacter/funnyrock.obj", true, "rock");
+	GameObject* rock = new GameObject("Models/basecharacter/funnyrock.obj", false, "rock");
 	GameObject* skull = new GameObject("Models/basecharacter/brideskull.obj", false, "skull");
 
 	scene->addGameObject(bag, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
@@ -77,12 +112,27 @@ int main() {
 	glm::mat4 model(1.0f);
 	diffuseShader.Activate();
 	diffuseShader.Setvec3("ambience", ambience);
-	Model test_scene("Assets/scene.obj");
+	//Model test_scene("Assets/scene.obj");
+	GameObject* test_scene = new GameObject("Assets/scene.obj", false, "scenetest");
+	scene->addGameObject(test_scene, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
 
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	// Setup Platform/Renderer bindings
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 330 core");
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+
+	bool focus = true;
 	while (glfwWindowShouldClose(window) == false) {
 		float currentTime = glfwGetTime();
 		float dtime = currentTime - time;
+		dtime *= 100;
+		time = currentTime;
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) { break; }   //setting up the close window button
+		setFocus(window, scenecam, focus);
 
 		glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -96,17 +146,16 @@ int main() {
 		diffuseShader.Setvec3("cameraPos", scenecam.Position);
 		diffuseShader.Setmat4("model",model);
 		diffuseShader.Set1f("tmaterial.shine", 64.0f);
-		PassPointsToShader(diffuseShader, scene -> points);
-		PassSunsToShader(diffuseShader,scene -> suns);
-		PassConesToShader(diffuseShader, scene -> cones);
-		//ApplySunToShader(diffuseShader, &sun, 0);
-
-		test_scene.Draw(diffuseShader);
-		//sun.Direction = glm::vec3(0.0f, sin(currentTime), 1.0f);
+		scene->gameObjects[1]->yaxisanglem += dtime;
+		//test_scene.Draw(diffuseShader);
 		
 
 		scene->render(diffuseShader, emissiveShader);
-		scenecam.GetKeyInputs(window, 0.01f, true, dtime); //Camera movement
+		scenecam.GetKeyInputs(window, 0.05f, focus, dtime); //Camera movement
+		if (!focus)
+		{
+			selectedGameObj = Gui(selectedGameObj, scene->gameObjects, scene->points, scene->suns, scene->cones);
+		}
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
