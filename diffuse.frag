@@ -11,6 +11,7 @@ in vec4 FragPosLS;
 out vec4 FragColor;
 
 uniform vec3 cameraPos;
+uniform bool useNormal;   // NORMAL TEXTURE FLAG
 
 
 vec3 gamma_correction(vec3 color, float gamma){
@@ -41,7 +42,6 @@ struct Material {
 vec3 diffuse;	//reflected under diffuse light
 vec3 specular;	//specular highlight color
 float shine;  //should be a power of two : higher the value more "shinier" the material.
-
 };
 
 
@@ -53,13 +53,13 @@ float shine;
 };
 
 uniform sampler2D shadowMap;
-float shadow_calc(vec4 fragPosLS)
+float shadow_calc(vec4 fragPosLS, float bias)
 {
 vec3 projCoords = fragPosLS.xyz / fragPosLS.w;
 projCoords = 0.5 * projCoords + 0.5;
 float closestD = texture(shadowMap, projCoords.xy).r;
 float currentD = projCoords.z;
-float bias = 0.005;
+//float bias = 0.005;
 float shadow = currentD - bias > closestD ? 1.0 : 0.0;
 if(projCoords.z > 1.0) shadow = 0.0;
 return shadow;
@@ -121,7 +121,9 @@ float spec = pow(max(0.0, dot(halfway, norm)), tmaterial.shine);
 vec3 specular = 0.01f * light.specular * (spec * specular_color.xyz);
 //finishing up;
 //vec3 ambient =  ambience * diffuse_color.xyz;
-return (diffuse + specular) * (1.0 - shadow_calc(FragPosLS));
+float bias = 0.005 * tan(acos(diff)); //slope based shadow bias
+bias = clamp(bias, 0,0.01);
+return (diffuse + specular) * (1.0 - shadow_calc(FragPosLS, bias));
 };
 
 vec3 calculate_cone(tMaterial tmaterial, coneLight light){
@@ -163,7 +165,6 @@ return (diffuse * attenuation) + (specular * attenuation);
 
 uniform Material material;
 uniform tMaterial tmaterial;
-
 
 //creating arrays for the lights
 #define MAX_LIGHTS 8
