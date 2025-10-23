@@ -10,5 +10,5 @@ uniform vec3 light_col;
 void main()
 {
    FragColor = texture(tex0, texCoord) * vec4(light_col, 1.0f) ;
-   //FragColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
 }

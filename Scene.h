@@ -51,12 +51,21 @@ public:
         PassPointsToShader(objectShader, points);
         PassSunsToShader(objectShader, suns);
         PassConesToShader(objectShader, cones);
-
+        objectShader.Activate();
         for (GameObject* object : gameObjects) {
             // Apply transform and render the game object
             object->draw(objectShader);
         }
         RenderLights(lightShader, points, suns, cones);
+    }
+    void depthPass(Shader depthShader) {
+        //will add the passing points later.
+        //each light will have to modify the lightspace matrix in the shader. idk how many textures its gonna require tbh lmao.
+
+        for (GameObject* object : gameObjects) {
+            // Apply transform and render the game object
+            object->draw(depthShader);
+        }
     }
     vector<GameObject*> gameObjects;
     vector<PointLight*> points;

@@ -40,15 +40,52 @@ void setFocus(GLFWwindow* window, Camera scenecam, bool& focus)
 			glfwSetCursorPos(window, width/2, height/2);
 			//glfwSetCursorPos(window, 1920 / 2, 1080 / 2);
 		}
-		cout << focus;
+		//cout << focus;
 		//return focus;
 	}
 }
 
+glm::mat4 calcLightSpaceMatrix(SunLight* sun)
+{
+	float near_plane = 1.0f, far_plane = 7.5;
+	glm::mat4 lightProj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+	glm::mat4 lightView = glm::lookAt(sun -> Position, sun -> Position + sun -> Direction, glm::vec3(0.0f, 1.0f, 0.0f));
+	return lightProj * lightView;
+}
+
+void renderQuad()   //This is for debugging framebuffers.
+{
+
+		float quadVertices[] = {
+			// positions        // texture Coords
+			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+			 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+			 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+		};
+		// setup plane VAO
+
+		unsigned int quadVAO;
+		unsigned int quadVBO;
+		glGenVertexArrays(1, &quadVAO);
+		glGenBuffers(1, &quadVBO);
+		glBindVertexArray(quadVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+
+	glBindVertexArray(quadVAO);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindVertexArray(0);
+}
+
 int main() {
 
-	int height = 1080;
-	int width = 1920;
+	int width = 1600; 
+	int height = 900;
 
 	// Basic GLFW window creation
 	glfwInit();
@@ -74,12 +111,14 @@ int main() {
 
 	glm::vec3 ambience(0.2f, 0.2f, 0.2f);
 
-
+	Shader dqShader("debug_quad.vert", "debug_quad.frag");
 	Shader diffuseShader("lighting.vert", "diffuse.frag"); // create shaders
 	Shader emissiveShader("emissive.vert", "emissive.frag");
+	Shader depthShader("depth.vert", "depth.frag");  // FASTER SHADER TO CALCULATE DEPTH MAPS FOR SHADOWS.
 	Camera scenecam(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), 45.0f, (float)(width) / height, 0.1f, 100.0f);  //creating the camera
 
 	//Model thing("Assets/spode-christmas-mug/source/mug.obj");
+	//The following code will simply create a scene with some objects and lights.
 	Scene* scene = new Scene;
 
 	GameObject* bag = new GameObject("Models/bag_model/backpack.obj", true, "bag");
@@ -91,7 +130,7 @@ int main() {
 	scene->addGameObject(skull, glm::vec3(0.0f, 5.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
 
 	//making the lights
-	PointLight point(glm::vec3(50.0f, 1.0f, 5.0f), glm::vec3(1.0f), glm::vec3(1.0f), "p1");
+	PointLight point(glm::vec3(0.0f, 5.0f, 5.0f), glm::vec3(1.0f), glm::vec3(1.0f), "p1");
 	vector<PointLight*> pointLights = {};
 	pointLights.push_back(&point);
 
@@ -125,8 +164,36 @@ int main() {
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
 
+	GLint maxTextures;
+	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextures);
+	printf("Max texture units: %d\n", maxTextures);
+
+	//Shadow Map testing
+	unsigned int depthMapFBO;   // Framebuffer
+	glGenFramebuffers(1, &depthMapFBO);
+	
+	const int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;  
+	unsigned int depthMap;
+	glGenTextures(1, &depthMap);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE); 
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	dqShader.Activate();
+	dqShader.Set1i("depthMap", 0);
 	bool focus = true;
 	while (glfwWindowShouldClose(window) == false) {
+
 		float currentTime = glfwGetTime();
 		float dtime = currentTime - time;
 		dtime *= 100;
@@ -139,17 +206,41 @@ int main() {
 
 		emissiveShader.Activate();
 		emissiveShader.Setmat4("cameraMatrix", scenecam.GetTransformMatrix());
-		//emissiveShader.Setmat4("model", model);
 
 		diffuseShader.Activate();
 		diffuseShader.Setmat4("cameraMatrix", scenecam.GetTransformMatrix());
 		diffuseShader.Setvec3("cameraPos", scenecam.Position);
-		diffuseShader.Setmat4("model",model);
-		diffuseShader.Set1f("tmaterial.shine", 64.0f);
-		scene->gameObjects[1]->yaxisanglem += dtime;
-		//test_scene.Draw(diffuseShader);
-		
 
+		diffuseShader.Set1f("tmaterial.shine", 64.0f);  // Shininess of material. Currently, the game object can't handle this so its hardcoded here. FIX!!!
+		scene->gameObjects[1]->yaxisanglem += dtime; // random rotation.
+
+
+		// shadow pass
+		glCullFace(GL_FRONT);
+		depthShader.Activate();
+		depthShader.Setmat4("lightSpaceMatrix", calcLightSpaceMatrix(&sun));
+		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		scene->depthPass(depthShader);   
+		glCullFace(GL_BACK);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glViewport(0, 0, width, height);
+		//dqShader.Activate();
+		//dqShader.Set1f("near_plane", 1.0f);
+		//dqShader.Set1f("far_plane", 7.5f);
+		//glActiveTexture(GL_TEXTURE0);  // Lets try the 6th texture unit for now.
+		//glBindTexture(GL_TEXTURE_2D, depthMap);
+
+		//renderQuad();
+		diffuseShader.Activate();
+
+		diffuseShader.Setmat4("LSMatrix", calcLightSpaceMatrix(&sun));
+		diffuseShader.Set1i("shadowMap", 5); 
+		glActiveTexture(GL_TEXTURE5);
+		glBindTexture(GL_TEXTURE_2D, depthMap);
 		scene->render(diffuseShader, emissiveShader);
 		scenecam.GetKeyInputs(window, 0.05f, focus, dtime); //Camera movement
 		if (!focus)
@@ -163,3 +254,4 @@ int main() {
 	return 0;
 
 }
+

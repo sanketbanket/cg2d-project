@@ -211,5 +211,5 @@ void PassSunsToShader(Shader& shader, vector<SunLight*> lights);
 void PassConesToShader(Shader& shader, vector<ConeLight*> lights);
 
 void RenderLights(Shader& shader, vector<PointLight*> points = {}, vector<SunLight*> suns = {}, vector<ConeLight*> cones = {});
-
+void getDepthMap(Shader& dShader, SunLight* sun);
 #endif

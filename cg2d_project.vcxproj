@@ -187,7 +187,11 @@
     <ClInclude Include="VBO.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="debug_quad.frag" />
+    <None Include="debug_quad.vert" />
     <None Include="default.frag" />
+    <None Include="depth.frag" />
+    <None Include="depth.vert" />
     <None Include="diffuse.frag" />
     <None Include="emissive.frag" />
     <None Include="emissive.vert" />

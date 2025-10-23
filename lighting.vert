@@ -11,11 +11,12 @@ layout (location = 2) in vec2 aTex;
 out vec3 normal;
 out vec3 FragPos;
 out vec2 texCoords;
+out vec4 FragPosLS;
 
 uniform float scale; // not used
 uniform mat4 model;
 uniform mat4 cameraMatrix;
-
+uniform mat4 LSMatrix;
 
 
 void main()
@@ -24,6 +25,7 @@ void main()
    FragPos = vec3(model * vec4(aPos, 1.0));
    normal = mat3(transpose(inverse(model))) * aNormal;
    texCoords = aTex;
+   FragPosLS = LSMatrix * vec4(FragPos, 1.0f);
 
    //texCoord = aTex;
 }

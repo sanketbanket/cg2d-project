@@ -7,10 +7,11 @@ uniform vec3 ambience;
 in vec3 normal;		//mesh normal vector
 in vec3 FragPos;	//position vector for the vertex
 in vec2 texCoords;	//texture coordinate for the vertex
-
+in vec4 FragPosLS;
 out vec4 FragColor;
 
 uniform vec3 cameraPos;
+
 
 vec3 gamma_correction(vec3 color, float gamma){
 return vec3(pow(color.x, 1.0/gamma), pow(color.y, 1.0/gamma),pow(color.z, 1.0/gamma));
@@ -47,9 +48,23 @@ float shine;  //should be a power of two : higher the value more "shinier" the m
 struct tMaterial {
 sampler2D diffuse1;
 sampler2D specular1;
-
+sampler2D normal1;
 float shine;
 };
+
+uniform sampler2D shadowMap;
+float shadow_calc(vec4 fragPosLS)
+{
+vec3 projCoords = fragPosLS.xyz / fragPosLS.w;
+projCoords = 0.5 * projCoords + 0.5;
+float closestD = texture(shadowMap, projCoords.xy).r;
+float currentD = projCoords.z;
+float bias = 0.005;
+float shadow = currentD - bias > closestD ? 1.0 : 0.0;
+if(projCoords.z > 1.0) shadow = 0.0;
+return shadow;
+}
+
 
 vec3 calculate_point(tMaterial tmaterial, pointLight light){		//calculates the lighting contribution of the point light
 //diffuse : 
@@ -87,7 +102,8 @@ return vec3(spec * 0.5f);
 };
 
 
-vec3 calculate_sun(tMaterial tmaterial, sunLight light){
+vec3 calculate_sun(tMaterial tmaterial, sunLight light)
+{
 vec4 diffuse_color = texture(tmaterial.diffuse1, texCoords);
 diffuse_color.xyz = gamma_correction(diffuse_color.xyz, 1.0f/2.2);
 vec4 specular_color = texture(tmaterial.specular1, texCoords);
@@ -105,7 +121,7 @@ float spec = pow(max(0.0, dot(halfway, norm)), tmaterial.shine);
 vec3 specular = 0.01f * light.specular * (spec * specular_color.xyz);
 //finishing up;
 //vec3 ambient =  ambience * diffuse_color.xyz;
-return diffuse + specular;
+return (diffuse + specular) * (1.0 - shadow_calc(FragPosLS));
 };
 
 vec3 calculate_cone(tMaterial tmaterial, coneLight light){
@@ -146,14 +162,11 @@ return (diffuse * attenuation) + (specular * attenuation);
 
 
 uniform Material material;
-pointLight point;
 uniform tMaterial tmaterial;
 
-sunLight sun;
-coneLight cone;
 
 //creating arrays for the lights
-#define MAX_LIGHTS 32
+#define MAX_LIGHTS 8
 uniform sunLight Suns[MAX_LIGHTS];
 uniform pointLight Points[MAX_LIGHTS];
 uniform coneLight Cones[MAX_LIGHTS];
@@ -162,24 +175,11 @@ uniform int sunCount;
 uniform int coneCount;
 
 
-void main(){         //NOTE : AMBIENT COLOR IS BEING ADDED OVER AND OVER WITH EACH LIGHT HENCE THAT IS SOMETHING THAT NEEDS TO BE TAKEN CARE OF. //done.
+void main(){         
 float gamma = 2.2f;
-point.position = vec3(0.0f, 2.0f, 2.0f);
-point.diffuse = vec3(1.0f,1.0f, 1.0f) * 0.5f;
-point.specular = vec3(1.0f,1.0f, 1.0f) * 0.5f;
-
-sun.direction = vec3(-3.0f, -3.0f, -6.0f);
-sun.diffuse = vec3( 1.0f,1.0f, 0.9f);
-sun.specular = vec3(1.0f, 1.0f, 1.0f);
-
-cone.position = vec3(0.0f, 4.0f, -4.0f);
-cone.direction = vec3(0.0f, -4.0f, 4.0f);
-cone.diffuse = vec3(0.0f, 0.0f,3.0f) * 2;
-cone.specular = vec3(0.0f, 0.0f,3.0f);
-cone.cutoff_angle = 45.0f;
 
 
-vec3 output_color = ambience * texture(tmaterial.diffuse1, texCoords).xyz; //apply ambient color first.
+vec3 output_color = ambience * texture(tmaterial.diffuse1, texCoords).xyz; 
 
 for(int i = 0; i < pointCount ; i++){
 output_color += calculate_point(tmaterial, Points[i]);
