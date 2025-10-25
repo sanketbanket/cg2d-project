@@ -1,4 +1,4 @@
-# Blender 4.5.3 LTS MTL File: 'None'
+# Blender 4.5.3 LTS MTL File: 'fan.blend'
 # www.blender.org
 
 newmtl Material.001
@@ -9,5 +9,4 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd Poliigon_WoodVeneerOak_7760_BaseColor.jpg
-map_Bump -bm 9.999999 Poliigon_WoodVeneerOak_7760_Normal.png
+map_Kd fantex.png

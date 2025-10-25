@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 #include "Model.h"
-
+#include "glm/gtc/matrix_transform.hpp"
 
 
 class Light {
@@ -130,6 +130,12 @@ public:
 		this->strength = input_pose[12];
 		return;
 	}
+	glm::mat4 get_LSmatrix(float left, float right, float bottom, float top, float near_plane, float far_plane) {
+		//float near_plane = 1.0f, far_plane = 7.5;
+		glm::mat4 lightProj = glm::ortho(left, right, bottom, top, near_plane, far_plane);
+		glm::mat4 lightView = glm::lookAt(Position, Position + Direction, glm::vec3(0.0f, 1.0f, 0.0f));
+		return lightProj * lightView;
+	};
 };
 class ConeLight : public Light {
 public:

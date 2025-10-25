@@ -2,13 +2,12 @@
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include "Shader.h"
 #include "Camera.h"
-#include "Model.h"
 #include "GameObj.h"
 #include "Scene.h"
 #include "light_objects.h"
 #include "GUI.h"
+#include "FB.h"
 
 
 using std::cout, std::endl;
@@ -45,13 +44,6 @@ void setFocus(GLFWwindow* window, Camera scenecam, bool& focus)
 	}
 }
 
-glm::mat4 calcLightSpaceMatrix(SunLight* sun)
-{
-	float near_plane = 1.0f, far_plane = 7.5;
-	glm::mat4 lightProj = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-	glm::mat4 lightView = glm::lookAt(sun -> Position, sun -> Position + sun -> Direction, glm::vec3(0.0f, 1.0f, 0.0f));
-	return lightProj * lightView;
-}
 
 void renderQuad()   //This is for debugging framebuffers.
 {
@@ -134,7 +126,7 @@ int main() {
 	vector<PointLight*> pointLights = {};
 	pointLights.push_back(&point);
 
-	SunLight sun(glm::vec3(0.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 0.8f), glm::vec3(1.0f, 1.0f, 0.8f), "s1");
+	SunLight sun(glm::vec3(0.0f, -1.0f, -1.0f), glm::vec3(1.0f, 1.0f, 0.8f), glm::vec3(1.0f, 1.0f, 0.8f), "s1");
 	vector<SunLight*> sunLights = {};
 	sunLights.push_back(&sun);
 
@@ -169,26 +161,8 @@ int main() {
 	printf("Max texture units: %d\n", maxTextures);
 
 	//Shadow Map testing
-	unsigned int depthMapFBO;   // Framebuffer
-	glGenFramebuffers(1, &depthMapFBO);
-	
-	const int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;  
-	unsigned int depthMap;
-	glGenTextures(1, &depthMap);
-	glBindTexture(GL_TEXTURE_2D, depthMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE); 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+	Framebuffer FB(1024, 1024, "depth");   //FRAME BUFFER FOR DEPTH 
 	dqShader.Activate();
 	dqShader.Set1i("depthMap", 0);
 	bool focus = true;
@@ -218,29 +192,24 @@ int main() {
 		// shadow pass
 		glCullFace(GL_FRONT);
 		depthShader.Activate();
-		depthShader.Setmat4("lightSpaceMatrix", calcLightSpaceMatrix(&sun));
-		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-		glClear(GL_DEPTH_BUFFER_BIT);
+		depthShader.Setmat4("lightSpaceMatrix", sun.get_LSmatrix(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 7.5f));
+		FB.bind();
 		scene->depthPass(depthShader);   
 		glCullFace(GL_BACK);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glViewport(0, 0, width, height);
+		FB.unbind();
+		glViewport(0, 0, width, height);   // make sure to reset your viewport.
 		//dqShader.Activate();
 		//dqShader.Set1f("near_plane", 1.0f);
 		//dqShader.Set1f("far_plane", 7.5f);
 		//glActiveTexture(GL_TEXTURE0);  // Lets try the 6th texture unit for now.
 		//glBindTexture(GL_TEXTURE_2D, depthMap);
-
 		//renderQuad();
+
 		diffuseShader.Activate();
 
-		diffuseShader.Setmat4("LSMatrix", calcLightSpaceMatrix(&sun));
+		diffuseShader.Setmat4("LSMatrix", sun.get_LSmatrix(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 7.5f));
 		diffuseShader.Set1i("shadowMap", 5); 
-		glActiveTexture(GL_TEXTURE5);
-		glBindTexture(GL_TEXTURE_2D, depthMap);
+		FB.bindTexture(5);
 		scene->render(diffuseShader, emissiveShader);
 		scenecam.GetKeyInputs(window, 0.05f, focus, dtime); //Camera movement
 		if (!focus)

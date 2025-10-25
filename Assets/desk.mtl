@@ -1,0 +1,23 @@
+# Blender 4.5.3 LTS MTL File: 'table.blend'
+# www.blender.org
+
+newmtl metal
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Poliigon_MetalPaintedMatte_7037_BaseColor.jpg
+
+newmtl wood
+Ns 278.016510
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd Poliigon_WoodVeneerOak_7760_BaseColor.jpg
+map_Bump -bm 4.900000 Poliigon_WoodVeneerOak_7760_Normal.png

@@ -166,6 +166,7 @@
     <ClInclude Include="EBO.h" />
     <ClInclude Include="GameObj.h" />
     <ClInclude Include="GUI.h" />
+    <ClInclude Include="FB.h" />
     <ClInclude Include="Libraries\include\imgui\backends\imgui_impl_glfw.h" />
     <ClInclude Include="Libraries\include\imgui\backends\imgui_impl_opengl3.h" />
     <ClInclude Include="Libraries\include\imgui\backends\imgui_impl_opengl3_loader.h" />
